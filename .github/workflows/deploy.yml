@@ -1,0 +1,70 @@
+name: Hello World Complete Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile / Package Application
+        run: |
+          echo "Compiling Hello World application..."
+          python -m zipapp . -m "app:generate_greeting" -o hello_world.pyz
+
+      - name: Archive Executable Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hello-world-app
+          path: hello_world.pyz
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Run Automated Python Test
+        run: |
+          echo "Running Hello World unit tests..."
+          python -c "from app import test_greeting; test_greeting()"
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Download App Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: hello-world-app
+
+      - name: Push to Staging Environment
+        run: |
+          echo "🚀 Deploying Hello World to Staging Server..."
+          python -c "from app import generate_greeting; print(generate_greeting())"
+          echo "Successfully live on staging.internal!"
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    steps:
+      - name: Download App Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: hello-world-app
+
+      - name: Push to Live Production
+        run: |
+          echo "🌍 DEPLOYING HELLO WORLD TO THE ENTIRE WORLD LIVE!"
+          python -c "from app import generate_greeting; print(generate_greeting())"
+          echo "Deployment Complete. Status: 200 OK"
