@@ -16,9 +16,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Compile / Package Application
+      - name: Pack Application
         run: |
-          echo "Compiling Hello World application..."
+          echo "Packaging application..."
           python -m zipapp . -m "app:generate_greeting" -o hello_world.pyz
 
       - name: Archive Executable Artifact
@@ -51,8 +51,7 @@ jobs:
       - name: Push to Staging Environment
         run: |
           echo "🚀 Deploying Hello World to Staging Server..."
-          python -c "from app import generate_greeting; print(generate_greeting())"
-          echo "Successfully live on staging.internal!"
+          python hello_world.pyz
 
   deploy-production:
     runs-on: ubuntu-latest
@@ -66,5 +65,4 @@ jobs:
       - name: Push to Live Production
         run: |
           echo "🌍 DEPLOYING HELLO WORLD TO THE ENTIRE WORLD LIVE!"
-          python -c "from app import generate_greeting; print(generate_greeting())"
-          echo "Deployment Complete. Status: 200 OK"
+          python hello_world.pyz
